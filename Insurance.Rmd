@@ -1,0 +1,481 @@
+---
+title: "**LabPAD**: Dentro de corretoras"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns  
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+
+if(!require("pacman")){install.packages("pacman"); library("pacman")}
+
+lib <- c("dplyr", "tidyr", "tidyverse", "ggplot2", "DT", "ggpubr",
+         "plyr", "glmnet", "purrr", "insuranceData",
+         "plotly", "gapminder", "gifski", "caret","rpart", "party",
+         "DMwR","ROSE","doMC","flexdashboard","caret")
+
+p_load(char = lib)
+```
+
+
+
+```{r Carregar Dados}
+
+# https://cran.r-project.org/web/packages/insuranceData/insuranceData.pdf
+
+data("dataCar")
+
+data <- dataCar
+
+# Editar tabla para ajustar resultados
+# Eliminar Carros com preço 0
+data <- data [-c(which(data$veh_value == 0)),]
+
+# Seleção de varaiveis para exploração de dados 
+# e geração de modelos da previsão 
+modelo <- data[,c(3,1,6, 10, 8,9)]
+names(modelo) <- c("Sinistros", 
+                   "Preco.Vehiculo",
+                   "Tipo.Vehiculo",
+                   "Anos.de.uso",
+                   "Sexo.Motorista",
+                   "Area.Residencia")
+
+```
+
+
+
+Input {.sidebar}
+===============================================================
+
+### Previsão de sinistro
+
+```{r Variavies}
+
+selectInput('Sinistros', 'Sinistros', c("Sim", "Não") )
+
+numericInput('Preco.Vehiculo', 'Preço de Vehiculo (10K)', 0.1, min = 0.1, max = 30)
+
+selectInput('Tipo.Vehiculo', 'Tipo de Vehiculo', c("HBACK","UTE","STNWG","HDTOP","PANVN",
+                                                   "SEDAN","TRUCK","COUPE","MIBUS","MCARA",
+                                                   "CONVT","RDSTR","BUS" ))
+
+numericInput('Anos.de.uso', 'Anos de uso', 1, min = 1, max = 6)
+
+
+selectInput('Sexo.Motorista', 'Genero do Motorista', c("F","M"))
+
+selectInput('Area.Residencia', 'Area de residência', c("A","B","C","D","E","F"))
+
+
+```
+
+
+
+
+# Exploratorio 
+
+## Column {}
+
+### Tipo de Vehiculo
+
+```{r Graficos.Exploração.Dados}
+
+aux1 <- data.frame(table(modelo$Sinistros,modelo[,3]))
+
+aux1$Var1 <- gsub("0","Não",aux1$Var1)
+aux1$Var1 <- gsub("1","Sim",aux1$Var1)
+names(aux1) <- c("Sinistro",names(modelo)[3],"Quantidade")
+
+
+p <- ggplot(aux1, aes(x=Tipo.Vehiculo, y= Quantidade, fill= Sinistro), cex=0.5) +
+  geom_col(position = position_dodge(), color='black')+
+  labs(title="",
+       x="", 
+       y = "Quantidade",
+       fill="") + 
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        axis.text.x = element_text(size=6))+
+  scale_fill_manual(values=c("#999999", "#E69F00"))+
+  theme(legend.position = "none")
+
+
+ggplotly(p,height=240, width=450) 
+
+# %>% 
+#   layout(legend = list(x = 100, y = 0.5, title=list(text='<b> Ocorrência\n de sinistros </b>')))
+
+```
+
+
+### Anos de uso
+
+```{r Dados}
+
+aux2 <- data.frame(table(modelo$Sinistros, modelo$Anos.de.uso))
+aux2$Var1 <- gsub("0","Não",aux2$Var1)
+aux2$Var1 <- gsub("1","Sim",aux2$Var1)
+
+names(aux2) <- c("Sinistro","Anos.de.uso","Quantidade")
+
+p <- ggplot(aux2, aes(x=Anos.de.uso, y= Quantidade, fill= Sinistro)) +
+  geom_col(position = position_dodge(), color='black')+
+  labs(title="",
+       x="", 
+       y = "Quantidade",
+       fill="") + 
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  scale_fill_manual(values=c("#999999", "#E69F00")) +
+  theme(legend.position = "none") 
+
+
+
+ggplotly(p,height=240, width=450) 
+
+# %>% 
+#   layout(legend = list(x = 100, y = 0.5, title=list(text='<b> Ocorrência\n de sinistros </b>')))
+
+```
+
+
+## Columna {}
+
+### Genero do Motorista 
+
+```{r Genero.Motorista}
+
+aux3 <- data.frame(table(modelo$Sinistros, modelo$Sexo.Motorista))
+aux3$Var1 <- gsub("0","Não",aux3$Var1)
+aux3$Var1 <- gsub("1","Sim",aux3$Var1)
+
+names(aux3) <- c("Sinistro","Sexo.Motorista","Quantidade")
+
+p <- ggplot(aux3, aes(x=Sexo.Motorista, y= Quantidade, fill= Sinistro)) +
+  geom_col(position = position_dodge(), color='black')+
+  labs(title="",
+       x="", 
+       y = "Quantidade",
+       fill="") + 
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  scale_fill_manual(values=c("#999999", "#E69F00")) +
+  theme(legend.position = "none")
+
+ggplotly(p,height=240, width=450) 
+# %>% 
+#   layout(legend = list(x = 100, y = 0.5, title=list(text='<b> Ocorrência\n de sinistros </b>')))
+
+```
+
+
+### Área de residencia do Motorista
+
+
+```{r Area.Residencia}
+
+aux4 <- data.frame(table(modelo$Sinistros, modelo$Area.Residencia))
+aux4$Var1 <- gsub("0","Não",aux4$Var1)
+aux4$Var1 <- gsub("1","Sim",aux4$Var1)
+
+names(aux4) <- c("Sinistro","Area.Residencia","Quantidade")
+
+p <- ggplot(aux4, aes(x=Area.Residencia, y= Quantidade, fill= Sinistro)) +
+  geom_col(position = position_dodge(), color='black')+
+  labs(title="",
+       x="", 
+       y = "Quantidade",
+       fill="") + 
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  scale_fill_manual(values=c("#999999", "#E69F00")) +
+  theme(legend.position = "none")
+
+ggplotly(p,height=240, width=450) 
+
+# %>% 
+#   layout(legend = list(x = 100, y = 0.5, title=list(text='<b> Ocorrência\n de sinistros </b>')))
+
+```
+
+
+
+# Previsão por IA
+
+
+## Columna {}
+
+
+### Por Regressão
+
+```{r Modelo.Regresion.Logistica.Lasso.Variavels}
+
+
+# Reamostragem up 
+# Dois modelos de regressão para comparar com os 
+# dados orginais frente a previsão de novos dados
+
+# Edit data
+modelo$Sinistros <- gsub(0,"Não",modelo$Sinistros)
+modelo$Sinistros <- gsub(1,"Sim",modelo$Sinistros)
+modelo$Sinistros <- as.factor(modelo$Sinistros)
+
+# Separar os dados em training e test
+set.seed(1107)
+index <- createDataPartition(modelo$Sinistros, p = 0.75, list = FALSE)
+train.data <- modelo[index, ]
+test.data  <- modelo[-index, ]
+
+# Original
+set.seed(1107)
+model.orig.log <- train(Sinistros ~ .,
+                        data = train.data,
+                        method="glm", 
+                        family="binomial",
+                        preProcess = c("scale", "center"),
+                        trControl = trainControl(method = "repeatedcv", 
+                                                 number = 5, 
+                                                 repeats = 5, 
+                                                 verboseIter = FALSE))
+
+coef.orig <- data.frame (p.value = coef(summary(model.orig.log))[,4])
+coef.orig <- data.frame(coeff = rownames(coef.orig), coef.orig)
+rownames(coef.orig) <- NULL
+coef.orig <- coef.orig[-1,]
+coef.orig <- coef.orig[order(coef.orig$p.value,decreasing = FALSE),]
+#coef.orig$p.value <- format(coef.orig$p.value, scientific = FALSE)
+#coef.orig$p.value <- round(as.numeric(coef.orig$p.value), digits = 5)
+coef.orig <- coef.orig[1:10,]
+
+
+
+# Up regressão logistica
+set.seed(1107)
+model.up.log <- train(Sinistros ~ .,
+                      data = train.data,
+                      method="glm", 
+                      family="binomial",
+                      preProcess = c("scale", "center"),
+                      trControl = trainControl(method = "repeatedcv", 
+                                               number = 5 , 
+                                               repeats = 5, 
+                                               verboseIter = FALSE,
+                                               sampling = "up"))
+
+coef.log <- data.frame (p.value = coef(summary(model.up.log))[,4])
+coef.log <- data.frame(coeff = rownames(coef.log), coef.log)
+rownames(coef.log) <- NULL
+coef.log <- coef.log[-1,]
+coef.log <- coef.log[order(coef.log$p.value,decreasing = FALSE),]
+#coef.log$p.value <- format(coef.log$p.value, scientific = FALSE)
+#coef.log$p.value <- round(as.numeric(coef.log$p.value), digits = 5)
+coef.log <- coef.log[1:10,]
+
+# Up.Lasso
+lambda <- 10^seq(10,-2,length=100)
+set.seed(1107)
+model.up.lasso <- train(Sinistros ~ .,
+                      data = train.data,
+                      method="glmnet", 
+                      preProcess = c("scale", "center"),
+                      tuneGrid = expand.grid(alpha = 1, lambda = lambda),
+                      trControl = trainControl(method = "repeatedcv", 
+                                               number = 5 , 
+                                               repeats = 5, 
+                                               verboseIter = FALSE,
+                                               sampling = "up"))
+
+
+
+coef.lasso <- data.frame (p.value=coef(model.up.lasso$finalModel, model.up.lasso$finalModel$lambdaOpt)[,1])
+coef.lasso <- data.frame(coeff = rownames(coef.lasso), coef.lasso)
+rownames(coef.lasso) <- NULL
+coef.lasso <- coef.lasso[-1,]
+aux1 <- which(coef.lasso$p.value != 0)
+aux2 <- which(coef.lasso$p.value == 0)
+aux3 <- data.frame(coef.lasso[aux2,])
+coef.lasso <- rbind(coef.lasso[aux1,], aux3[1: (10 - length(aux1)),])
+
+
+# Usuario
+usuario <- reactive({
+
+  data.frame(Sinistros = input$Sinistros,
+             Preco.Vehiculo = input$Preco.Vehiculo,
+             Tipo.Vehiculo=input$Tipo.Vehiculo,
+             Anos.de.uso = input$Anos.de.uso,
+             Sexo.Motorista = input$Sexo.Motorista,
+             Area.Residencia= input$Area.Residencia)
+  
+})
+
+
+pred.orig.log <- reactive({
+  
+  predict(model.orig.log, newdata=usuario()[,-1], type = "prob")[,2:2]
+  
+})
+
+pred.log <- reactive({
+  predict(model.up.log, newdata=usuario()[,-1], type = "prob")[,2:2]
+})
+
+pred.lasso <- reactive ({ 
+  predict(model.up.lasso, newdata=usuario()[,-1], type = "prob")[,2:2]
+})
+
+# usuario <- data.frame(Sinistros = "Não",
+#                       Preco.Vehiculo = 10,
+#                       Tipo.Vehiculo=c("BUS"),
+#                       Anos.de.uso = 3,
+#                       Sexo.Motorista = c("F"),
+#                       Area.Residencia= c("D"))
+  
+
+# Representação grafica
+
+test.data$Sinistros <- gsub("Não",0,test.data$Sinistros)
+test.data$Sinistros <- gsub("Sim",1, test.data$Sinistros)
+test.data$Sinistros <- as.numeric(test.data$Sinistros)
+
+renderPlot({
+
+  ggplot(data = test.data, aes(x = Preco.Vehiculo, y = Sinistros, color=Sinistros)) +
+  geom_point(aes(color = as.factor(Sinistros)), shape = 1) + 
+  theme_bw() +
+  geom_point(data= usuario(), aes(x=usuario()$Preco.Vehiculo,y=pred.orig.log()), shape=2, size=3)+
+  geom_text(data= usuario(), aes(x=usuario()$Preco.Vehiculo+1.5, 
+                                 y=pred.orig.log()), label = "Original")+
+  geom_point(data= usuario(), aes(x=usuario()$Preco.Vehiculo,y=pred.log()), shape=1, size=3)+
+  geom_text(data= usuario(), aes(x=usuario()$Preco.Vehiculo+1.5, 
+                                 y=pred.log()), label = "Logistica") +
+  geom_point(data= usuario(), aes(x=usuario()$Preco.Vehiculo,y=pred.lasso()), shape=4, size=3)+
+  geom_text(data= usuario(), aes(x=usuario()$Preco.Vehiculo+1.5, 
+                                 y=pred.lasso()*1.03), label = "Lasso") +
+  geom_hline(yintercept = 0.5, lty = 2, color="brown", size=0.5, alpha= 0.4) +
+    labs(title = "",
+         x="Preço do Vehiculo (10K)",
+       y = "Probabilidad de Sinistro") +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  scale_color_manual(values=c("#999999", "#E69F00", "blue", "blue", "blue")) +
+  theme(legend.position = "none")
+  
+})
+
+
+```
+  
+## Columna {}
+
+
+### Por Árvore de decisão
+
+
+```{r Modelo.Decision.Tree}
+
+
+# Reamostragem up 
+# Dois modelos de regressão para comparar com os 
+# dados orginais frente a previsão de novos dados
+
+# Edit data
+modelo$Sinistros <- gsub(0,"Não",modelo$Sinistros)
+modelo$Sinistros <- gsub(1,"Sim",modelo$Sinistros)
+modelo$Sinistros <- as.factor(modelo$Sinistros)
+
+# Separar os dados em training e test
+set.seed(1107)
+index <- createDataPartition(modelo$Sinistros, p = 0.75, list = FALSE)
+train.data <- modelo[index, ]
+test.data  <- modelo[-index, ]
+
+# Original
+set.seed(1107)
+model.orig.dt <- train(Sinistros ~ .,
+                        data = train.data,
+                        method= "ctree2", 
+                        tuneLength = 10,
+                        tuneGrid = expand.grid(maxdepth = 3, mincriterion = 0.95 ),
+                        preProcess = c("scale", "center"),
+                        trControl = trainControl(method = "repeatedcv", 
+                                                 number = 5, 
+                                                 repeats = 5, 
+                                                 verboseIter = FALSE))
+
+#plot(model.orig.dt$finalModel, terminal_panel = node_barplot, edge_panel = edge_simple)
+
+
+# Arvore de decisão
+set.seed(1107)
+model.up.dt <- train(Sinistros ~ .,
+                      data = train.data,
+                      method="ctree2", 
+                      preProcess = c("scale", "center"),
+                      tuneLength = 10,
+                      tuneGrid = expand.grid(maxdepth = 3, mincriterion = 0.95 ),
+                      trControl = trainControl(method = "repeatedcv", 
+                                               number = 5 , 
+                                               repeats = 5, 
+                                               verboseIter = FALSE,
+                                               sampling = "up"))
+
+#plot(model.up.dt$finalModel, terminal_panel = node_barplot, edge_panel = edge_simple)
+
+
+# Usuario
+usuario <- reactive({
+
+  data.frame(Sinistros = input$Sinistros,
+             Preco.Vehiculo = input$Preco.Vehiculo,
+             Tipo.Vehiculo=input$Tipo.Vehiculo,
+             Anos.de.uso = input$Anos.de.uso,
+             Sexo.Motorista = input$Sexo.Motorista,
+             Area.Residencia= input$Area.Residencia)
+  
+})
+
+pred.orig.dt <- reactive({
+  predict(model.orig.dt, newdata=usuario()[,-1], type = "prob")[,2:2]
+})
+
+pred.dt <- reactive({
+  predict(model.up.dt, newdata=usuario()[,-1], type = "prob")[,2:2]
+})
+
+
+# Representação grafica
+
+test.data$Sinistros <- gsub("Não",0,test.data$Sinistros)
+test.data$Sinistros <- gsub("Sim",1, test.data$Sinistros)
+test.data$Sinistros <- as.numeric(test.data$Sinistros)
+
+renderPlot({
+  
+ggplot(data = test.data, aes(x = Preco.Vehiculo, y = Sinistros, color=Sinistros)) +
+  geom_point(aes(color = as.factor(Sinistros)), shape = 1) + 
+  theme_bw() +
+    geom_point(data= usuario(), aes(x=usuario()$Preco.Vehiculo,y=pred.orig.dt()), shape=2, size=3)+
+     geom_text(data= usuario(), aes(x=usuario()$Preco.Vehiculo+1.5, 
+                                 y=pred.orig.dt()), label = "Original")+
+    geom_point(data= usuario(), aes(x=usuario()$Preco.Vehiculo,y=pred.dt()), shape=1, size=3)+
+   geom_text(data= usuario(), aes(x=usuario()$Preco.Vehiculo+1.5, 
+                                 y=pred.dt()), label = "Tree") +
+    geom_hline(yintercept = 0.5, lty = 2, color="brown", size=0.5, alpha= 0.4) +
+    labs(title = "",
+         x="Preço do Vehiculo (10K)",
+       y = "Probabilidad de Sinistro") +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  scale_color_manual(values=c("#999999", "#E69F00", "red", "red")) +
+  theme(legend.position = "none")
+    
+
+})
+
+```
+
+
