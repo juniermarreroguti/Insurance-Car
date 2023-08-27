@@ -3,8 +3,8 @@
 
 <!-- badges: start -->
 <!-- badges: end -->
-<p align="justify"> 
 
+<p align="justify"> 
 &nbsp;&nbsp;&nbsp;
 A aprendizagem de máquina (ou _machine learning_, em inglês, -**ML**-) tornou-se uma ferramenta valiosa na indústria de seguros de automóveis. Ela possibilita que as analisem grandes quantidades de dados para tomar decisões mais precisas e eficientes na avaliação de riscos, definição de preços e detecção de fraudes.
 
