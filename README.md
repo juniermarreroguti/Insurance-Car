@@ -5,8 +5,10 @@
 <!-- badges: end -->
 
 <p align="justify"> 
+  
 &nbsp;&nbsp;&nbsp;
-A aprendizagem de máquina (ou _machine learning_, em inglês, -**ML**-) tornou-se uma ferramenta valiosa na indústria de seguros de automóveis. Ela possibilita que as analisem grandes quantidades de dados para tomar decisões mais precisas e eficientes na avaliação de riscos, definição de preços e detecção de fraudes.
+
+A aprendizagem de máquina (ou _machine learning_, em inglês, **ML**) tornou-se uma ferramenta valiosa na indústria de seguros de automóveis. Ela possibilita que as analisem grandes quantidades de dados para tomar decisões mais precisas e eficientes na avaliação de riscos, definição de preços e detecção de fraudes.
 
 &nbsp;&nbsp;&nbsp;
 Com um banco de dados que agrupam 67.856 apólices de seguro automóvel subscritas entre o 2004-2005 nos propussimos avaliar probabilidade de acidentes para estimar os riscos dos condutores e a possivel precificação do seguro com três ferramentas de _ML_, estudando as viaraiveis independentes: idade do condutor, histórico de condução, modelo do carro, kilometrage, anos de uso, área de residencia do condutor, preço do vehiculo.
