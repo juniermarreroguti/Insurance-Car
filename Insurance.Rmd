@@ -1,5 +1,5 @@
 ---
-title: "**LabPAD**: Dentro de corretoras"
+title: "**LabPAD**"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns  
@@ -460,7 +460,7 @@ ggplot(data = test.data, aes(x = Preco.Vehiculo, y = Sinistros, color=Sinistros)
   theme_bw() +
     geom_point(data= usuario(), aes(x=usuario()$Preco.Vehiculo,y=pred.orig.dt()), shape=2, size=3)+
      geom_text(data= usuario(), aes(x=usuario()$Preco.Vehiculo+1.5, 
-                                 y=pred.orig.dt()), label = "Original")+
+                                 y=pred.orig.dt()), label = "Sem Modelo")+
     geom_point(data= usuario(), aes(x=usuario()$Preco.Vehiculo,y=pred.dt()), shape=1, size=3)+
    geom_text(data= usuario(), aes(x=usuario()$Preco.Vehiculo+1.5, 
                                  y=pred.dt()), label = "Tree") +
