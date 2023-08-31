@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+Insurance.Rmd linguist-documentation=true
+*.Rmd linguist-language=RMarkdown
