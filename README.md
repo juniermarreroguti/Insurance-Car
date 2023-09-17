@@ -32,6 +32,6 @@ A aprendizagem de máquina está revolucionando a maneira como as empresas opera
 **APP**
 
 &nbsp;&nbsp;&nbsp;
-O aplicativo encontra-se disponível no seguinte endereço: [ML na indústria de seguros de automóveis]( https://junier-marrero-guti.shinyapps.io/InsuranceCar/). Ficaria muito grato caso tenha interesse em reproduzir essas e outras análises em sua empresa.
+O aplicativo encontra-se disponível no seguinte endereço: [ML na indústria de seguros de automóveis](https://junier-marrero-guti.shinyapps.io/InsuranceCar/). Ficaria muito grato caso tenha interesse em reproduzir essas e outras análises em sua empresa.
 </p>
 
